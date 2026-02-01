@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>💖 Surprise</title>
+  <style>
+    :root{
+      --pink1:#ff9a9e;
+      --pink2:#fad0c4;
+      --red:#ff4b5c;
+      --white:#ffffff;
+    }
+    *{box-sizing:border-box}
+    body{
+      height:100vh; margin:0;
+      display:flex; justify-content:center; align-items:center;
+      font-family:"Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      background: linear-gradient(135deg, var(--pink1), var(--pink2));
+      overflow:hidden; position:relative;
+      user-select:none;
+    }
+
+    /* blobs */
+    .blob{
+      position:absolute; width:460px; height:460px; border-radius:50%;
+      filter: blur(40px); opacity:0.35; z-index:0;
+      animation: drift 10s ease-in-out infinite alternate;
+    }
+    .blob.one{background:#ff4b5c; top:-160px; left:-150px;}
+    .blob.two{background:#ffffff; bottom:-190px; right:-150px; animation-duration:13s;}
+    .blob.three{background:#ff6fb1; top:30px; right:-210px; animation-duration:12s;}
+    @keyframes drift{ from{transform:translate(0,0) scale(1)} to{transform:translate(55px,25px) scale(1.06)} }
+
+    /* floating hearts */
+    .hearts{ position:absolute; inset:0; overflow:hidden; z-index:0; pointer-events:none; }
+    .heart{
+      position:absolute; bottom:-40px; width:18px; height:18px;
+      background: rgba(255,75,92,0.7);
+      transform: rotate(45deg);
+      border-radius: 3px;
+      animation: floatUp linear infinite;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.12));
+    }
+    .heart::before,.heart::after{
+      content:""; position:absolute; width:18px; height:18px; background:inherit; border-radius:50%;
+    }
+    .heart::before{left:-9px; top:0}
+    .heart::after{top:-9px; left:0}
+    @keyframes floatUp{
+      from{ transform: translateY(0) rotate(45deg); opacity:0.0; }
+      12%{ opacity:0.95; }
+      to{ transform: translateY(-115vh) rotate(45deg); opacity:0; }
+    }
+
+    /* sparkles */
+    .sparkles{ position:absolute; inset:0; pointer-events:none; z-index:1; opacity:0.85; }
+    .sparkle{
+      position:absolute; width:4px; height:4px; border-radius:50%;
+      background: rgba(255,255,255,0.95);
+      animation: twinkle 1.8s ease-in-out infinite;
+    }
+    @keyframes twinkle{
+      0%,100%{ transform: scale(0.6); opacity:0.25; }
+      50%{ transform: scale(1.35); opacity:1; }
+    }
+
+    /* cards */
+    .panel{
+      position:relative; z-index:3;
+      width:min(640px, 92vw);
+      padding: 26px 22px;
+      border-radius: 26px;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.35);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.18);
+      text-align:center;
+    }
+    h1{
+      margin:0 0 8px;
+      font-size: clamp(1.6rem, 3.2vw, 2.6rem);
+      color:#fff;
+      text-shadow: 2px 2px 14px rgba(0,0,0,0.25);
+    }
+    p{ margin:8px 0; color:rgba(255,255,255,0.92); font-size: 1.05rem; }
+
+    .row{ display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:14px; }
+    .pill{
+      padding:10px 14px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.20);
+      border: 1px solid rgba(255,255,255,0.32);
+      color: rgba(255,255,255,0.95);
+      font-size: 0.98rem;
+      display:inline-flex; align-items:center; gap:10px;
+    }
+
+    .btn{
+      padding: 14px 28px;
+      font-size: 1.05rem;
+      border:none; border-radius: 999px;
+      cursor:pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.18);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:hover{ transform: scale(1.06); }
+    .btn-primary{ background: var(--red); color:#fff; }
+    .btn-ghost{ background: rgba(255,255,255,0.85); color: var(--red); }
+
+    /* game area */
+    .gameBox{
+      width:min(560px, 92%);
+      height: 280px;
+      margin: 14px auto 0;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.28);
+      position:relative;
+      overflow:hidden;
+    }
+    .target{
+      position:absolute;
+      font-size: 34px;
+      cursor:pointer;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.18));
+      transition: transform 0.12s ease;
+    }
+    .target:active{ transform: scale(0.9); }
+
+    /* question arena */
+    .arena{
+      position:relative;
+      width:min(520px, 92%);
+      height: 180px;
+      margin: 12px auto 0;
+    }
+    .qbtn{
+      position:absolute;
+      padding: 14px 28px;
+      font-size: 1.05rem;
+      border:none;
+      border-radius: 999px;
+      cursor:pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, left 0.25s ease, top 0.25s ease;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.18);
+      -webkit-tap-highlight-color: transparent;
+    }
+    #yesBtn{ background: var(--red); color:#fff; left: 18px; top: 64px; }
+    #noBtn{ background: #fff; color: var(--red); right: 18px; top: 64px; border:2px solid rgba(255,75,92,0.22); }
+
+    /* meter */
+    .meterWrap{ width:min(520px, 92%); margin: 10px auto 0; }
+    .meter{
+      width:100%; height: 12px; border-radius: 999px;
+      background: rgba(255,255,255,0.25);
+      overflow:hidden; border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.12);
+    }
+    .meter > div{
+      height:100%; width:0%;
+      background: rgba(255,255,255,0.88);
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+    .meterEmoji{
+      margin-top: 10px;
+      color: rgba(255,255,255,0.95);
+      text-shadow: 0 6px 18px rgba(0,0,0,0.16);
+      letter-spacing:2px;
+      min-height: 1.1em;
+      font-size: 1.1rem;
+    }
+
+    /* confetti */
+    .confetti{ position:absolute; inset:0; z-index:10; pointer-events:none; overflow:hidden; }
+    .confetti span{
+      position:absolute; top:-20px;
+      width:10px; height:14px;
+      border-radius: 3px;
+      opacity:0;
+      animation: pop 1050ms ease forwards;
+    }
+    @keyframes pop{
+      0%{ transform: translateY(0) rotate(0deg); opacity:0; }
+      10%{ opacity:1; }
+      100%{ transform: translateY(110vh) rotate(650deg); opacity:0; }
+    }
+
+    /* burst */
+    .burst{ position:absolute; width:10px; height:10px; pointer-events:none; z-index:11; }
+    .burst i{
+      position:absolute; font-style:normal;
+      animation: burst 900ms ease forwards;
+      opacity:0;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.16));
+    }
+    @keyframes burst{
+      0%{ transform: translate(0,0) scale(0.6); opacity:0; }
+      15%{ opacity:1; }
+      100%{ transform: translate(var(--dx), var(--dy)) scale(1.35); opacity:0; }
+    }
+
+    /* modal */
+    .modalOverlay{
+      position:absolute; inset:0; z-index:50;
+      display:none; align-items:center; justify-content:center;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(6px);
+      padding: 18px;
+    }
+    .modal{
+      width:min(520px, 96vw);
+      border-radius: 22px;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.35);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.25);
+      padding: 18px 16px;
+      text-align:left;
+      color: rgba(255,255,255,0.95);
+    }
+    .modal h2{ margin:0 0 8px; font-size: 1.35rem; }
+    .modal p{ margin: 6px 0 12px; }
+    .input{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      outline:none;
+      font-size: 1rem;
+    }
+    .modalActions{ display:flex; gap:10px; justify-content:flex-end; margin-top: 12px; flex-wrap:wrap; }
+    .smallNote{ opacity:0.9; font-size:0.92rem; }
+  </style>
+</head>
+<body>
+  <div class="blob one"></div>
+  <div class="blob two"></div>
+  <div class="blob three"></div>
+
+  <div class="sparkles" id="sparkles"></div>
+  <div class="hearts" id="hearts"></div>
+  <div class="confetti" id="confetti"></div>
+
+  <!-- GAME PANEL -->
+  <div class="panel" id="gamePanel">
+    <h1>Mini Game 🎮 Catch the Heart</h1>
+    <p>Tap the 💗 to score points. Reach <b>6 points</b> 😉</p>
+
+    <div class="row">
+      <div class="pill">Score: <b id="score">0</b></div>
+      <div class="pill">Goal: <b>6</b></div>
+      <div class="pill">Sound: <b id="soundStatus">OFF</b></div>
+    </div>
+
+    <div class="gameBox" id="gameBox" aria-label="game area">
+      <div class="target" id="target" title="Catch me!">💗</div>
+    </div>
+
+    <p class="smallNote">Tip: first tap anywhere to enable sound (browser rule).</p>
+  </div>
+
+  <!-- QUESTION PANEL -->
+  <div class="panel" id="questionPanel" style="display:none;">
+    <h1 id="qTitle">Will you be my Valentine? 💘</h1>
+    <p id="qSub">I have one question… and a lot of courage 😅</p>
+
+    <div class="meterWrap">
+      <div class="meter"><div id="meterFill"></div></div>
+      <div class="meterEmoji" id="meterEmoji"></div>
+    </div>
+
+    <div class="arena" id="arena">
+      <button class="qbtn" id="yesBtn">YES 💖</button>
+      <button class="qbtn" id="noBtn">NO 😅</button>
+    </div>
+
+    <div class="row">
+      <div class="pill"><span>💡</span><span id="hint">Press YES… 6 times 😏</span></div>
+    </div>
+  </div>
+
+  <!-- EMAIL MODAL -->
+  <div class="modalOverlay" id="emailModal">
+    <div class="modal">
+      <h2>One tiny thing first ✨</h2>
+      <p>Drop your email so I can get the “accepted” receipt 😄</p>
+      <input class="input" id="herEmail" type="email" placeholder="hername@example.com" autocomplete="email"/>
+      <div class="smallNote">This will open your mail app to send a pre-filled email to <b>dr.jetronics@gmail.com</b>.</div>
+      <div class="modalActions">
+        <button class="btn btn-ghost" id="cancelEmail">Skip</button>
+        <button class="btn btn-primary" id="saveEmail">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------------------------
+    // Pretty background bits
+    // ---------------------------
+    const sparkles = document.getElementById("sparkles");
+    (function makeSparkles(){
+      const n = 36;
+      for(let i=0;i<n;i++){
+        const s = document.createElement("div");
+        s.className = "sparkle";
+        s.style.left = (Math.random()*100) + "vw";
+        s.style.top  = (Math.random()*100) + "vh";
+        s.style.animationDelay = (Math.random()*2) + "s";
+        s.style.animationDuration = (1.2 + Math.random()*2.4) + "s";
+        s.style.opacity = (0.25 + Math.random()*0.75);
+        sparkles.appendChild(s);
+      }
+    })();
+
+    const heartsWrap = document.getElementById("hearts");
+    function spawnHeart(){
+      const h = document.createElement("div");
+      h.className = "heart";
+      const size = 10 + Math.random()*18;
+      h.style.width = size + "px";
+      h.style.height = size + "px";
+      h.style.left = (Math.random()*100) + "vw";
+      h.style.animationDuration = (6 + Math.random()*6) + "s";
+      h.style.background = `rgba(255, 75, 92, ${0.35 + Math.random()*0.45})`;
+      heartsWrap.appendChild(h);
+      setTimeout(()=>h.remove(), 13000);
+    }
+    setInterval(spawnHeart, 300);
+
+    // ---------------------------
+    // SOUND EFFECTS (WebAudio)
+    // Must be unlocked by first user gesture.
+    // ---------------------------
+    let audioCtx = null;
+    let soundUnlocked = false;
+    const soundStatus = document.getElementById("soundStatus");
+
+    function unlockAudio(){
+      if (soundUnlocked) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      soundUnlocked = true;
+      soundStatus.textContent = "ON";
+      // tiny "ready" chirp
+      playChime();
+    }
+
+    function playTone(freq, durationMs, type="sine", gain=0.06){
+      if (!soundUnlocked || !audioCtx) return;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type;
+      o.frequency.value = freq;
+      g.gain.value = gain;
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.start();
+      const now = audioCtx.currentTime;
+      g.gain.setValueAtTime(gain, now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + durationMs/1000);
+      o.stop(now + durationMs/1000);
+    }
+
+    function playPop(){ // click / game hit
+      playTone(520, 90, "triangle", 0.05);
+      playTone(820, 70, "sine", 0.03);
+    }
+
+    function playDodge(){ // NO dodges
+      playTone(260, 90, "square", 0.035);
+      playTone(180, 130, "sine", 0.03);
+    }
+
+    function playChime(){ // success-ish
+      playTone(784, 120, "sine", 0.06);
+      setTimeout(()=>playTone(988, 140, "sine", 0.06), 120);
+      setTimeout(()=>playTone(1175, 170, "sine", 0.06), 260);
+    }
+
+    function playSparkle(){ // little sparkle
+      playTone(1400, 60, "sine", 0.025);
+      setTimeout(()=>playTone(1700, 60, "sine", 0.02), 70);
+    }
+
+    // unlock on any first click/tap
+    document.addEventListener("pointerdown", unlockAudio, { once:true });
+
+    // ---------------------------
+    // CONFETTI + BURST
+    // ---------------------------
+    const confetti = document.getElementById("confetti");
+    function confettiBurst(){
+      confetti.innerHTML = "";
+      const pieces = 44;
+      for (let i=0;i<pieces;i++){
+        const s = document.createElement("span");
+        s.style.left = Math.random()*100 + "vw";
+        s.style.animationDelay = (Math.random()*0.18) + "s";
+        const r = 200 + Math.floor(Math.random()*55);
+        const g = 70 + Math.floor(Math.random()*140);
+        const b = 120 + Math.floor(Math.random()*135);
+        s.style.background = `rgb(${r},${g},${b})`;
+        const w = 8 + Math.floor(Math.random()*8);
+        const h = 10 + Math.floor(Math.random()*10);
+        s.style.width = w + "px";
+        s.style.height = h + "px";
+        confetti.appendChild(s);
+      }
+      setTimeout(()=>confetti.innerHTML="", 1300);
+    }
+
+    function heartExplosionAt(x, y){
+      const burst = document.createElement("div");
+      burst.className = "burst";
+      burst.style.left = x + "px";
+      burst.style.top  = y + "px";
+
+      const icons = ["💖","💘","💗","💞","💕","❤️"];
+      const count = 12;
+      for(let i=0;i<count;i++){
+        const it = document.createElement("i");
+        it.textContent = icons[Math.floor(Math.random()*icons.length)];
+        const angle = (Math.PI*2) * (i/count);
+        const dist = 60 + Math.random()*40;
+        it.style.setProperty("--dx", (Math.cos(angle)*dist) + "px");
+        it.style.setProperty("--dy", (Math.sin(angle)*dist) + "px");
+        it.style.fontSize = (16 + Math.random()*14) + "px";
+        it.style.animationDelay = (Math.random()*0.08) + "s";
+        burst.appendChild(it);
+      }
+      document.body.appendChild(burst);
+      setTimeout(()=>burst.remove(), 1000);
+    }
+
+    // ---------------------------
+    // STEP 1: GAME PAGE
+    // ---------------------------
+    const gamePanel = document.getElementById("gamePanel");
+    const questionPanel = document.getElementById("questionPanel");
+    const gameBox = document.getElementById("gameBox");
+    const target = document.getElementById("target");
+    const scoreEl = document.getElementById("score");
+
+    let score = 0;
+    const GOAL = 6;
+
+    function moveTarget(){
+      const box = gameBox.getBoundingClientRect();
+      const pad = 18;
+      const x = pad + Math.random()*(box.width - pad*2 - 36);
+      const y = pad + Math.random()*(box.height - pad*2 - 36);
+      target.style.left = x + "px";
+      target.style.top  = y + "px";
+    }
+    moveTarget();
+    setInterval(moveTarget, 900);
+
+    target.addEventListener("click", ()=>{
+      playPop();
+      score++;
+      scoreEl.textContent = score;
+      target.textContent = (score % 2 === 0) ? "💗" : "💖";
+      moveTarget();
+      if (score >= GOAL){
+        // suspense then reveal
+        setTimeout(()=> {
+          playSparkle();
+          showQuestion();
+        }, 600);
+      }
+    });
+
+    function showQuestion(){
+      gamePanel.style.display = "none";
+      questionPanel.style.display = "block";
+      // subtle "suddenly" effect
+      playChime();
+    }
+
+    // ---------------------------
+    // STEP 2: VALENTINE QUESTION
+    // Rules:
+    // - NO dodges 4 times then turns into YES
+    // - YES needs 6 taps to confirm -> then acceptance
+    // ---------------------------
+    const arena = document.getElementById("arena");
+    const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+    const hint = document.getElementById("hint");
+    const meterFill = document.getElementById("meterFill");
+    const meterEmoji = document.getElementById("meterEmoji");
+
+    let dodgeCount = 0;
+    const MAX_DODGES = 4;
+
+    let yesTaps = 0;
+    const YES_TAPS_REQUIRED = 3;
+
+    function setEmojiMeter(){
+      const noMap = ["🙂","🙂🙂","🙂🥰🥰","🥰🥰😘😘","😘😘🥰❤️💖"];
+      const noHearts = ["", "💗", "💗💗", "💗💗💗", "💗💗💗💗"];
+      meterEmoji.textContent = `NO-meter: ${noMap[dodgeCount]} ${noHearts[dodgeCount]}  |  YES taps: ${yesTaps}/${YES_TAPS_REQUIRED}`;
+    }
+
+    function updateMeter(){
+      const pct = Math.min(100, (dodgeCount / MAX_DODGES) * 100);
+      meterFill.style.width = pct + "%";
+      setEmojiMeter();
+    }
+    updateMeter();
+
+    function arenaBounds(){
+      const r = arena.getBoundingClientRect();
+      return { w:r.width, h:r.height };
+    }
+
+    function moveNoButton(){
+      const {w,h} = arenaBounds();
+      const bw = noBtn.offsetWidth;
+      const bh = noBtn.offsetHeight;
+      const pad = 8;
+      const x = pad + Math.random()*(w - bw - pad*2);
+      const y = pad + Math.random()*(h - bh - pad*2);
+      noBtn.style.left = x + "px";
+      noBtn.style.top  = y + "px";
+      noBtn.style.right = "auto";
+    }
+
+    function turnNoIntoYes(){
+      noBtn.textContent = "YES 💖";
+      noBtn.style.background = "#ff4b5c";
+      noBtn.style.color = "white";
+      noBtn.style.border = "none";
+      noBtn.style.boxShadow = "0 16px 34px rgba(0,0,0,0.22)";
+    }
+
+    function handleNoAttempt(e){
+      e.preventDefault();
+      if (dodgeCount < MAX_DODGES){
+        dodgeCount++;
+        playDodge();
+        hint.textContent = ["Nice try 😅","No is shy 😂","Still trying? 😏","Almost… 👀","Okay… YES now 💖"][dodgeCount];
+        updateMeter();
+        moveNoButton();
+      } else {
+        // no becomes yes, then treat as a yes tap
+        turnNoIntoYes();
+        playSparkle();
+        yesTapFromButton(noBtn);
+      }
+    }
+
+    function yesTapFromButton(btn){
+      yesTaps++;
+      playPop();
+
+      const r = btn.getBoundingClientRect();
+      heartExplosionAt(r.left + r.width/2, r.top + r.height/2);
+
+      hint.textContent = (yesTaps < YES_TAPS_REQUIRED)
+        ? `Press YES ${YES_TAPS_REQUIRED - yesTaps} more time(s) 😄`
+        : `Okay okay… you locked it in 💖`;
+
+      updateMeter();
+
+      if (yesTaps >= YES_TAPS_REQUIRED){
+        playChime();
+        confettiBurst();
+        setTimeout(()=>openEmailModal(), 520);
+      }
+    }
+
+    noBtn.addEventListener("mouseover", (e)=>{
+      if (dodgeCount < MAX_DODGES) handleNoAttempt(e);
+    });
+    noBtn.addEventListener("click", handleNoAttempt);
+
+    yesBtn.addEventListener("click", (e)=> {
+      e.preventDefault();
+      yesTapFromButton(yesBtn);
+    });
+
+    // initial NO position
+    requestAnimationFrame(()=>{
+      noBtn.style.left = (arena.clientWidth - noBtn.offsetWidth - 18) + "px";
+      noBtn.style.top = "64px";
+      noBtn.style.right = "auto";
+    });
+
+    // ---------------------------
+    // STEP 3: Ask her email (modal) then "send" email
+    // via mailto: (opens her mail app with prefilled email)
+    // ---------------------------
+    const emailModal = document.getElementById("emailModal");
+    const herEmailInput = document.getElementById("herEmail");
+    const cancelEmail = document.getElementById("cancelEmail");
+    const saveEmail = document.getElementById("saveEmail");
+
+    let herEmail = "";
+
+    function openEmailModal(){
+      emailModal.style.display = "flex";
+      herEmailInput.focus();
+    }
+
+    function closeEmailModal(){
+      emailModal.style.display = "none";
+    }
+
+    function validEmail(s){
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
+    }
+
+    function finalizeSuccessAndEmail(){
+      // Show final success message on page
+      document.body.innerHTML = `
+        <div class="blob one"></div><div class="blob two"></div><div class="blob three"></div>
+        <div class="hearts" id="hearts2"></div>
+        <div class="panel" style="z-index:3; text-align:center;">
+          <h1>❤️ Best Decision Ever 💖</h1>
+          <p>Maya You just made my heart overflow ❤️</p>
+          
+          <p style="margin-top:12px;">Now sending the “Accepted” email… 📩</p>
+          <div class="row" style="margin-top:14px;">
+            <a id="mailtoLink" class="btn btn-primary" style="text-decoration:none; display:inline-flex; align-items:center; gap:10px;">
+              Open Email ✉️
+            </a>
+            <button id="copyBtn" class="btn btn-ghost">Copy message</button>
+          </div>
+          <p class="smallNote">If it doesn’t open automatically, tap “Open Email”.</p>
+        </div>
+      `;
+
+      // keep hearts floating on success
+      const hw = document.getElementById("hearts2");
+      function spawn2(){
+        const h = document.createElement("div");
+        h.className = "heart";
+        const size = 10 + Math.random()*18;
+        h.style.width = size + "px";
+        h.style.height = size + "px";
+        h.style.left = (Math.random()*100) + "vw";
+        h.style.animationDuration = (6 + Math.random()*6) + "s";
+        h.style.background = `rgba(255, 75, 92, ${0.35 + Math.random()*0.45})`;
+        hw.appendChild(h);
+        setTimeout(()=>h.remove(), 13000);
+      }
+      setInterval(spawn2, 280);
+
+      // Build mailto
+      const to = "dr.jetronics@gmail.com";
+      const subject = encodeURIComponent("Valentine Accepted 💖");
+      const bodyLines = [
+        "Hi Dr. Jetronics,",
+        "",
+        "She accepted the Valentine request 🎉💖",
+        "",
+        `Her email: ${herEmail || "(not provided)"}`,
+        `Accepted on: ${new Date().toLocaleString()}`,
+        "",
+        "— Sent from the Valentine surprise page"
+      ];
+      const body = encodeURIComponent(bodyLines.join("\n"));
+
+      const mailto = `mailto:${to}?subject=${subject}&body=${body}`;
+
+      const mailtoLink = document.getElementById("mailtoLink");
+      mailtoLink.href = mailto;
+
+      // Auto-attempt opening mail app (may be blocked unless user clicks)
+      setTimeout(()=> {
+        // best-effort: some browsers allow it right after interaction flow, some won't.
+        window.location.href = mailto;
+      }, 350);
+
+      // Copy helper
+      const copyBtn = document.getElementById("copyBtn");
+      copyBtn.addEventListener("click", async ()=>{
+        const text = decodeURIComponent(body);
+        try{
+          await navigator.clipboard.writeText(text);
+          copyBtn.textContent = "Copied ✅";
+          setTimeout(()=>copyBtn.textContent="Copy message", 1100);
+        }catch{
+          copyBtn.textContent = "Copy failed";
+          setTimeout(()=>copyBtn.textContent="Copy message", 1100);
+        }
+      });
+
+      playChime();
+      confettiBurst();
+    }
+
+    cancelEmail.addEventListener("click", ()=>{
+      herEmail = "";
+      closeEmailModal();
+      finalizeSuccessAndEmail();
+    });
+
+    saveEmail.addEventListener("click", ()=>{
+      const v = herEmailInput.value.trim();
+      if (v && !validEmail(v)){
+        playDodge();
+        herEmailInput.focus();
+        herEmailInput.style.borderColor = "rgba(255,255,255,0.9)";
+        setTimeout(()=>herEmailInput.style.borderColor="rgba(255,255,255,0.35)", 350);
+        return;
+      }
+      herEmail = v;
+      closeEmailModal();
+      finalizeSuccessAndEmail();
+    });
+
+    // ---------------------------
+    // Optional: sparkle clicks (fun)
+    // ---------------------------
+    document.addEventListener("click", (e)=>{
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      if(tag === "button" || tag === "a" || tag === "input") return;
+      if (soundUnlocked) playSparkle();
+      heartExplosionAt(e.clientX, e.clientY);
+    }, { passive:true });
+  </script>
+</body>
+</html>
