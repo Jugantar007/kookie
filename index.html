@@ -671,11 +671,7 @@
       const mailtoLink = document.getElementById("mailtoLink");
       mailtoLink.href = mailto;
 
-      // Auto-attempt opening mail app (may be blocked unless user clicks)
-      setTimeout(()=> {
-        // best-effort: some browsers allow it right after interaction flow, some won't.
-        window.location.href = mailto;
-      }, 350);
+
 
       // Copy helper
       const copyBtn = document.getElementById("copyBtn");
@@ -727,3 +723,4 @@
   </script>
 </body>
 </html>
+
